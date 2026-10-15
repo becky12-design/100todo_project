@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人生100件事清单</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        body {
+            background: #f5f7fa;
+            padding: 20px 15px;
+            color: #333;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 30px 25px;
+        }
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0 6px;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: #fff;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        .progress-text {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .list {
+            padding: 10px 0;
+        }
+        .item {
+            display: flex;
+            align-items: center;
+            padding: 16px 25px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+        .item:last-child {
+            border-bottom: none;
+        }
+        .item:hover {
+            background: #f8f9ff;
+        }
+        .item.done {
+            background: #f0f9eb;
+            color: #52c41a;
+        }
+        .checkbox {
+            width: 22px;
+            height: 22px;
+            border: 2px solid #d9d9d9;
+            border-radius: 6px;
+            margin-right: 15px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.25s ease;
+        }
+        .item.done .checkbox {
+            background: #52c41a;
+            border-color: #52c41a;
+        }
+        .item.done .checkbox::after {
+            content: "✓";
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .text {
+            font-size: 16px;
+            line-height: 1.5;
+            flex: 1;
+        }
+        .btn-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            width: 90%;
+            margin: 20px auto 30px;
+        }
+        .btn-row button {
+            flex: 1 1 30%;
+            padding: 11px 6px;
+            white-space: nowrap;
+            border: 1px solid #d9d9d9;
+            background: #fff;
+            color: #555;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-row button:hover {
+            background: #fafafa;
+        }
+        .btn-row button.danger {
+            border-color: #ff4d4f;
+            color: #ff4d4f;
+        }
+        .btn-row button.danger:hover {
+            background: #fff1f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>人生100件事清单</h1>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">已完成 0 / 100</div>
+        </div>
+        <div class="list" id="list"></div>
+        <div class="btn-row">
+            <button class="danger" onclick="resetAll()">重置进度</button>
+            <button onclick="exportBackup()">导出备份</button>
+            <button onclick="document.getElementById('importFile').click()">导入备份</button>
+            <input type="file" id="importFile" accept=".json,application/json" style="display:none" onchange="importBackup(this)">
+        </div>
+    </div>
+
+    <script>
+        const list = [
+            "拿到教师资格证",
+            "普通话考到二甲",
+            "顺利拿到本科毕业证",
+            "一个人去一座陌生城市旅行",
+            "看一次海上日出",
+            "爬一次武功山看云海",
+            "攒到人生第一笔1万元存款",
+            "学会做10道拿手家常菜",
+            "坚持跑步一个月",
+            "给父母买一份贴心礼物",
+            "去看一场喜欢的演唱会",
+            "学会剪一条完整的短视频",
+            "读够50本课外书",
+            "做一次志愿活动",
+            "拿到驾照",
+            "去海边赶一次海",
+            "学会化日常淡妆",
+            "一个人去电影院看电影",
+            "坐一次绿皮火车慢旅行",
+            "给自己写一封十年后的信",
+            "学会游泳",
+            "去北京看一次升旗",
+            "去长沙喝茶颜悦色",
+            "成功减重10斤并保持",
+            "做一次兼职赚到零花钱",
+            "学会弹一首完整的曲子",
+            "养一盆植物并养活它",
+            "去看一次星空银河",
+            "学会做手账规划生活",
+            "过一个有仪式感的生日",
+            "去迪士尼/欢乐谷玩一天",
+            "学会一门基础外语",
+            "拍一套正式的写真照",
+            "和好朋友去一次远途旅行",
+            "学会做饭并给家人吃",
+            "在山顶露营过一夜",
+            "看完一部长篇美剧",
+            "学会拒绝别人不合理的要求",
+            "当众做一次完整演讲",
+            "克服一个自己的恐惧",
+            "坚持早睡早起一个月",
+            "去博物馆看一次文物展",
+            "学会摄影基础构图",
+            "写一本自己的随笔集",
+            "去看一次秋天的枫叶",
+            "冬天去看一次雪",
+            "学会骑自行车逛城市",
+            "去寺庙祈福一次",
+            "做一次彻底的断舍离",
+            "学会理财基础记账",
+            "拿到一次奖学金",
+            "通过英语六级考试",
+            "完成一次毕业论文答辩",
+            "参加一次大型比赛",
+            "学会用PPT做精美演示",
+            "拥有一套正式的穿搭",
+            "去一次音乐节",
+            "在大城市生活一个月",
+            "学会修简单的家电",
+            "种一次花并看它开放",
+            "去看一次大熊猫",
+            "坐一次飞机出行",
+            "学会泡一杯好茶",
+            "做一次人生职业规划",
+            "和很久不见的老友见面",
+            "学会说不，不委屈自己",
+            "去逛一次大型书展",
+            "学会基础的急救知识",
+            "去看一次瀑布",
+            "在海边放一次烟花",
+            "学会织一条围巾",
+            "去一次古镇住几天",
+            "坚持每天喝水8杯",
+            "学会基础的PS修图",
+            "做一次环保公益活动",
+            "去看一次郁金香花海",
+            "学会正确的护肤流程",
+            "一个人好好吃一顿火锅",
+            "去看一次油菜花田",
+            "学会时间管理方法",
+            "给未来的自己录一段视频",
+            "去体验一次陶艺",
+            "看完四大名著原著",
+            "去一次草原骑马",
+            "学会高效记笔记方法",
+            "拥有一个坚持一年的爱好",
+            "去看一次演唱会",
+            "学会和自己和解",
+            "去一次沙漠看日落",
+            "养成复盘总结的习惯",
+            "帮别人实现一个小愿望",
+            "去看一次极光（国内也行）",
+            "拥有属于自己的房间",
+            "学会情绪管理不内耗",
+            "靠自己能力赚第一笔大钱",
+            "带父母去旅行一次",
+            "成为自己想成为的人",
+            "学会写一份完整的个人简历",
+            "拍一段自我介绍短视频",
+            "独立规划一次短途旅行预算"
+        ];
+
+        const listEl = document.getElementById('list');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        let sid = localStorage.getItem("sid");
+        if (!sid) {
+            sid = "todo_" + Date.now();
+            localStorage.setItem("sid", sid);
+        }
+
+        // 【本地优先】Render 免费实例休眠 / 重新部署时，服务器上的 todo.db 会被清空，
+        // 所以进度必须先存在浏览器本地，服务器只当作备份（顺便用于换设备同步）。
+        let doneList = readLocalDone();
+
+        function readLocalDone() {
+            try {
+                const raw = localStorage.getItem("todo_done");
+                const arr = raw ? JSON.parse(raw) : [];
+                return Array.isArray(arr) ? arr : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function writeLocalDone() {
+            try {
+                localStorage.setItem("todo_done", JSON.stringify(doneList));
+            } catch (e) { /* 隐私模式下可能写不了，忽略 */ }
+        }
+
+        async function loadData() {
+            // 1) 先用本地这份画出来：秒开，而且不会闪成"全部未完成"
+            render();
+            writeLocalDone();
+            // 2) 再尝试和服务器合一次（两边取并集，谁都不会丢），并把本地这份回填给服务器
+            try {
+                const res = await fetch(`/api/get/${sid}`);
+                const serverList = await res.json();
+                if (Array.isArray(serverList) && serverList.length) {
+                    doneList = Array.from(new Set(doneList.concat(serverList))).sort((a, b) => a - b);
+                    writeLocalDone();
+                    render();
+                }
+                await saveData();
+            } catch (e) {
+                // 服务器没起来 / 连不上，也不影响本地正常打勾
+            }
+        }
+
+        async function saveData() {
+            try {
+                await fetch("/api/save", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ sid, doneList })
+                });
+            } catch (e) {
+                // 存不上服务器不报错，本地已经存好了
+            }
+        }
+
+        function render() {
+            listEl.innerHTML = '';
+            list.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'item' + (doneList.includes(index) ? ' done' : '');
+                div.innerHTML = `<div class="checkbox"></div><div class="text">${index + 1}. ${item}</div>`;
+                div.onclick = () => toggle(index);
+                listEl.appendChild(div);
+            });
+            updateProgress();
+        }
+
+        function toggle(index) {
+            if (doneList.includes(index)) {
+                doneList = doneList.filter(i => i !== index);
+            } else {
+                doneList.push(index);
+            }
+            writeLocalDone();   // 先落本地（断网也丢不了），再尽力同步服务器
+            render();
+            saveData();
+        }
+
+        function updateProgress() {
+            const count = doneList.length;
+            const percent = (count / list.length) * 100;
+            progressFill.style.width = percent + '%';
+            progressText.textContent = `已完成 ${count} / ${list.length}`;
+        }
+
+        // 【备份】进度只存在这个浏览器里，导出一份 JSON 存好，换手机或清缓存后能一键恢复
+        function exportBackup() {
+            const data = { version: 1, exportedAt: new Date().toISOString(), sid, doneList };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "人生100件事-进度备份-" + new Date().toISOString().slice(0, 10) + ".json";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+        }
+
+        function importBackup(input) {
+            const file = input.files && input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    const obj = JSON.parse(reader.result);
+                    const arr = Array.isArray(obj) ? obj : obj.doneList;
+                    if (!Array.isArray(arr)) throw new Error("文件内容不是这份清单的备份");
+                    doneList = Array.from(new Set(arr.filter(n => Number.isInteger(n) && n >= 0 && n < list.length))).sort((a, b) => a - b);
+                    writeLocalDone();
+                    render();
+                    saveData();
+                    alert("导入成功：已完成 " + doneList.length + " 项");
+                } catch (e) {
+                    alert("导入失败：" + (e && e.message ? e.message : e));
+                } finally {
+                    input.value = "";
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function resetAll() {
+            if (confirm('确定要重置全部进度吗？')) {
+                doneList = [];
+                writeLocalDone();
+                saveData();
+                render();
+            }
+        }
+        loadData();
+    </script>
+</body>
+</html>
